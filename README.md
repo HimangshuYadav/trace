@@ -28,8 +28,8 @@ Trace is implemented using a **split multi-tier architecture** that separates th
 ## 3. How the Solution Works
 
 ### A. Authentication & Session Flow
-* **Sign Up**: Creating an account initializes a dynamic zero-baseline state (`0.0` today's total, `0` day streak) rather than preloading mock template data. 
-* **Sign In**: Verifies credentials and generates a session token using a Base64-encoded representation of the email.
+* **Sign Up**: Creating an account initializes a dynamic zero-baseline state (`0.0` today's total, `0` day streak) rather than preloading mock template data. Credentials are hashed using secure PBKDF2-SHA512.
+* **Sign In**: Verifies credentials and generates a session token signed with a cryptographically secure HMAC-SHA256 signature (`email.signature`).
 * **Client Persistence**: The session token is stored in the browser's `localStorage`. The frontend attaches this token to the `Authorization: Bearer <token>` header for all protected API calls.
 
 ### B. Carbon Footprint Calculations
@@ -54,12 +54,13 @@ Standard carbon factors used:
 
 ---
 
-## 4. Assumptions Made
+## 4. Assumptions Made & Architecture Decisions
 
 1. **Clean Slate Assumption**: Newly registered users should start with a zero baseline to track their actual progress. For immediate exploration, a pre-seeded account is provided:
-   * **Explorer Login**: `taylor@trace.earth` / `password` (pre-populated with 9-day streak, 10-point history, and active habits).
-2. **Session Security Prototyping**: Base64 encoding/decoding of the email string is used as authentication tokens. This satisfies user isolation and session persistence without adding heavy external crypto libraries that trigger native compilation errors during testing runs.
+   * **Explorer Login**: Taylor Young (`taylor@trace.earth` / `password`, pre-populated with a 9-day streak, 10-point history, and active habits).
+2. **Cryptographic Integrity & Security**: Passwords are securely hashed using `PBKDF2-SHA512` with a unique salt for each user. Tokens are signed via `HMAC-SHA256` using a dynamic cryptographically secure secret, preventing forgery or tampering.
 3. **Graphing Coordinate Safety**: For new accounts containing only a single log entry, the coordinate algorithm defaults to centering the point at X = 500 to prevent division-by-zero errors.
+4. **Performance Caching**: User data is cached in-memory in the Node.js process and persisted to the file system asynchronously using non-blocking I/O (`fs.writeFile`), preventing blocking of the Node.js event loop.
 
 ---
 

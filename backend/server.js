@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const fs = require('fs');
 const path = require('path');
+const crypto = require('crypto');
 
 const app = express();
 const PORT = process.env.PORT || 5001;
@@ -9,14 +10,62 @@ const PORT = process.env.PORT || 5001;
 const DB_DIR = path.join(__dirname, 'data');
 const DB_FILE = path.join(DB_DIR, 'db.json');
 
+// Security Headers Middleware
+app.use((req, res, next) => {
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('X-XSS-Protection', '1; mode=block');
+  next();
+});
+
 // Middleware
 app.use(cors()); // Allow cross-origin requests from frontend (Port 3000)
 app.use(express.json());
 
+// HMAC secret for cryptographically signing sessions
+const JWT_SECRET = crypto.randomBytes(32).toString('hex');
+
+// Password security helpers
+function hashPassword(password) {
+  const salt = crypto.randomBytes(16).toString('hex');
+  const hash = crypto.pbkdf2Sync(password, salt, 1000, 64, 'sha512').toString('hex');
+  return `${salt}:${hash}`;
+}
+
+function verifyPassword(password, storedPassword) {
+  if (!storedPassword.includes(':')) {
+    // Fallback for cleartext passwords (seeding context)
+    return password === storedPassword;
+  }
+  const [salt, hash] = storedPassword.split(':');
+  const verifyHash = crypto.pbkdf2Sync(password, salt, 1000, 64, 'sha512').toString('hex');
+  return hash === verifyHash;
+}
+
+// Session signing helpers
+function generateToken(email) {
+  const signature = crypto.createHmac('sha256', JWT_SECRET).update(email).digest('base64url');
+  return `${email}.${signature}`;
+}
+
+function verifyToken(token) {
+  if (!token) return null;
+  const lastDotIndex = token.lastIndexOf('.');
+  if (lastDotIndex === -1) return null;
+  const email = token.substring(0, lastDotIndex);
+  const signature = token.substring(lastDotIndex + 1);
+  
+  const expectedSignature = crypto.createHmac('sha256', JWT_SECRET).update(email).digest('base64url');
+  if (signature === expectedSignature) {
+    return email;
+  }
+  return null;
+}
+
 // Seeding helper to create user parameters (for the exploration profile Taylor Young)
 const getSeedData = (name, email, password) => ({
   email,
-  password, // stored as cleartext for simplicity in this development prototype
+  password, // stored securely as a PBKDF2 hash
   name,
   target: 10.0,
   streak: 9,
@@ -153,6 +202,9 @@ const getNewUserData = (name, email, password) => {
   };
 };
 
+// In-Memory database caching to optimize event-loop efficiency
+let dbInMemory = { users: [] };
+
 // Database initialization
 function initDb() {
   if (!fs.existsSync(DB_DIR)) {
@@ -162,32 +214,35 @@ function initDb() {
     // Seed with a default user "Taylor Young" for immediate exploration
     const defaultData = {
       users: [
-        getSeedData("Taylor Young", "taylor@trace.earth", "password")
+        getSeedData("Taylor Young", "taylor@trace.earth", hashPassword("password"))
       ]
     };
     fs.writeFileSync(DB_FILE, JSON.stringify(defaultData, null, 2), 'utf-8');
+    dbInMemory = defaultData;
     console.log("Database initialized and seeded.");
   } else {
-    console.log("Database file found.");
+    try {
+      dbInMemory = JSON.parse(fs.readFileSync(DB_FILE, 'utf-8'));
+      console.log("Database loaded into memory cache.");
+    } catch (err) {
+      console.error("Error reading database:", err);
+      dbInMemory = { users: [] };
+    }
   }
 }
 
 function readDb() {
-  try {
-    const data = fs.readFileSync(DB_FILE, 'utf-8');
-    return JSON.parse(data);
-  } catch (err) {
-    console.error("Error reading database:", err);
-    return { users: [] };
-  }
+  return dbInMemory;
 }
 
 function writeDb(data) {
-  try {
-    fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2), 'utf-8');
-  } catch (err) {
-    console.error("Error writing database:", err);
-  }
+  dbInMemory = data;
+  // Non-blocking asynchronous writing to prevent blocking the event-loop
+  fs.writeFile(DB_FILE, JSON.stringify(dbInMemory, null, 2), 'utf-8', (err) => {
+    if (err) {
+      console.error("Asynchronous database write error:", err);
+    }
+  });
 }
 
 initDb();
@@ -204,8 +259,12 @@ function authenticateToken(req, res, next) {
   }
   
   try {
-    // Decode token which is simple base64 of email
-    const email = Buffer.from(token, 'base64').toString('utf-8');
+    // Verify HMAC-signed cryptographic session token
+    const email = verifyToken(token);
+    if (!email) {
+      return res.status(403).json({ success: false, message: "Invalid or forged session token." });
+    }
+    
     const db = readDb();
     const user = db.users.find(u => u.email === email);
     
@@ -239,11 +298,11 @@ app.post('/api/auth/signup', (req, res) => {
     return res.status(400).json({ success: false, message: "Email is already registered." });
   }
 
-  const newUser = getNewUserData(name, email.toLowerCase(), password);
+  const newUser = getNewUserData(name, email.toLowerCase(), hashPassword(password));
   db.users.push(newUser);
   writeDb(db);
 
-  const token = Buffer.from(newUser.email).toString('base64');
+  const token = generateToken(newUser.email);
   console.log(`Registered user: ${newUser.name} (${newUser.email})`);
   res.json({ success: true, token, user: { name: newUser.name, email: newUser.email } });
 });
@@ -259,17 +318,16 @@ app.post('/api/auth/login', (req, res) => {
   const db = readDb();
   const user = db.users.find(u => u.email === email.toLowerCase());
 
-  if (!user || user.password !== password) {
+  if (!user || !verifyPassword(password, user.password)) {
     return res.status(401).json({ success: false, message: "Invalid email or password." });
   }
 
-  const token = Buffer.from(user.email).toString('base64');
+  const token = generateToken(user.email);
   res.json({ success: true, token, user: { name: user.name, email: user.email } });
 });
 
 // GET Profile
 app.get('/api/profile', authenticateToken, (req, res) => {
-  // Strip password for safety
   const profile = { ...req.user };
   delete profile.password;
   res.json(profile);
@@ -363,7 +421,7 @@ app.post('/api/reset', authenticateToken, (req, res) => {
   const index = db.users.findIndex(u => u.email === req.user.email);
   if (index !== -1) {
     const freshUser = req.user.email === 'taylor@trace.earth'
-      ? getSeedData(req.user.name, req.user.email, req.user.password)
+      ? getSeedData(req.user.name, req.user.email, hashPassword("password"))
       : getNewUserData(req.user.name, req.user.email, req.user.password);
     db.users[index] = freshUser;
     writeDb(db);
@@ -373,6 +431,20 @@ app.post('/api/reset', authenticateToken, (req, res) => {
   }
 });
 
-app.listen(PORT, () => {
-  console.log(`  Trace API Server listening on http://localhost:${PORT}`);
-});
+// Export elements for unit testing
+module.exports = {
+  app,
+  hashPassword,
+  verifyPassword,
+  generateToken,
+  verifyToken,
+  getSeedData,
+  getNewUserData,
+  JWT_SECRET
+};
+
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`  Trace API Server listening on http://localhost:${PORT}`);
+  });
+}
