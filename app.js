@@ -108,7 +108,6 @@ async function fetchUserData() {
 function checkAuth() {
   const authStateContainer = document.getElementById('nav-auth-state');
   const mobileAuthStateContainer = document.getElementById('mobile-auth-state');
-  const resetBtn = document.getElementById('footer-reset-btn');
 
   if (userToken && userProfile) {
     // Logged in state
@@ -124,7 +123,6 @@ function checkAuth() {
         <a href="#" class="mobile-btn" onclick="logout(event)">Sign out</a>
       `;
     }
-    if (resetBtn) resetBtn.classList.remove('hidden');
   } else {
     // Logged out default
     if (authStateContainer) {
@@ -139,7 +137,6 @@ function checkAuth() {
         <a href="#" class="mobile-btn" onclick="openAuthModal('signup', event)">Get started</a>
       `;
     }
-    if (resetBtn) resetBtn.classList.add('hidden');
   }
 }
 
@@ -307,29 +304,7 @@ function logout(event) {
   navigateTo('home');
 }
 
-async function resetAllDatabase(event) {
-  if (event) event.preventDefault();
-  if (!confirm("Are you sure you want to reset all your carbon stats and habit history? This cannot be undone.")) return;
-  
-  try {
-    const res = await fetch(`${API_BASE}/api/reset`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${userToken}`
-      }
-    });
-    
-    const data = await res.json();
-    if (data.success) {
-      alert("User metrics reset successfully!");
-      await fetchUserData();
-      navigateTo('dashboard');
-    }
-  } catch (err) {
-    console.error("Reset data failure:", err);
-  }
-}
+
 
 function toggleMobileMenu() {
   const menu = document.getElementById('mobile-nav-dropdown');
@@ -1287,7 +1262,6 @@ window.toggleAuthView = toggleAuthView;
 window.handleSignInSubmit = handleSignInSubmit;
 window.handleSignUpSubmit = handleSignUpSubmit;
 window.logout = logout;
-window.resetAllDatabase = resetAllDatabase;
 window.toggleMobileMenu = toggleMobileMenu;
 
 window.switchLogCategory = switchLogCategory;
