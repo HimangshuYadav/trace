@@ -10,7 +10,7 @@
   
   --text-primary: #1A1C19;
   --text-secondary: #454A41;
-  --text-light: #8E948A;
+  --text-light: #5A6056;
   
   --color-green-primary: #2D5016;
   --color-green-hover: #1E370E;
@@ -147,7 +147,7 @@ button {
   display: inline-block;
   font-family: var(--font-mono);
   font-size: 0.75rem;
-  text-transform: uppercase;
+  /* text-transform: uppercase; */
   letter-spacing: 0.1em;
   color: var(--color-green-primary);
   margin-bottom: 0.75rem;
@@ -503,7 +503,7 @@ button {
 .mock-label {
   font-size: 0.85rem;
   color: var(--text-light);
-  text-transform: uppercase;
+  /* text-transform: uppercase; */
   letter-spacing: 0.05em;
 }
 
@@ -557,7 +557,7 @@ button {
 .mock-badge {
   font-family: var(--font-mono);
   font-size: 0.65rem;
-  text-transform: uppercase;
+  /* text-transform: uppercase; */
   color: var(--color-amber);
   font-weight: 500;
 }
@@ -590,7 +590,7 @@ button {
   text-align: center;
   font-family: var(--font-mono);
   font-size: 0.8rem;
-  text-transform: uppercase;
+  /* text-transform: uppercase; */
   letter-spacing: 0.15em;
   color: var(--text-light);
   margin-bottom: 4rem;
@@ -781,7 +781,7 @@ button {
 .pill-tag {
   font-family: var(--font-mono);
   font-size: 0.65rem;
-  text-transform: uppercase;
+  /* text-transform: uppercase; */
   padding: 3px 8px;
   border-radius: 4px;
   font-weight: 500;
@@ -907,7 +907,7 @@ button {
 .footer-heading {
   font-family: var(--font-mono);
   font-size: 0.75rem;
-  text-transform: uppercase;
+  /* text-transform: uppercase; */
   letter-spacing: 0.1em;
   color: var(--text-secondary);
 }
@@ -1240,7 +1240,7 @@ button {
   font-size: 0.8rem;
   font-family: var(--font-mono);
   color: var(--text-secondary);
-  text-transform: uppercase;
+  /* text-transform: uppercase; */
   letter-spacing: 0.05em;
   display: block;
   margin-bottom: 0.5rem;
@@ -1675,7 +1675,7 @@ button {
 .filter-title {
   font-family: var(--font-mono);
   font-size: 0.75rem;
-  text-transform: uppercase;
+  /* text-transform: uppercase; */
   letter-spacing: 0.1em;
   color: var(--text-secondary);
   border-bottom: 1px solid var(--border-color);
@@ -1784,7 +1784,7 @@ button {
   font-family: var(--font-mono);
   font-size: 0.75rem;
   color: var(--text-secondary);
-  text-transform: uppercase;
+  /* text-transform: uppercase; */
   letter-spacing: 0.05em;
   font-weight: 500;
 }
@@ -1932,7 +1932,7 @@ button {
   font-size: 0.8rem;
   font-family: var(--font-mono);
   color: var(--text-secondary);
-  text-transform: uppercase;
+  /* text-transform: uppercase; */
   letter-spacing: 0.05em;
   display: block;
   margin-bottom: 0.5rem;

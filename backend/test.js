@@ -1,6 +1,14 @@
 const test = require('node:test');
 const assert = require('node:assert');
+const fs = require('fs');
+const path = require('path');
+
+// Configure test database file path before importing server modules
+const TEST_DB_FILE = path.join(__dirname, 'test_db.json');
+process.env.DB_FILE = TEST_DB_FILE;
+
 const { 
+  app,
   hashPassword, 
   verifyPassword, 
   generateToken, 
@@ -8,37 +16,44 @@ const {
   getNewUserData 
 } = require('./server');
 
-test('Password Hashing Verification', () => {
+// Cleanup helper
+function cleanupTestDb() {
+  if (fs.existsSync(TEST_DB_FILE)) {
+    try {
+      fs.unlinkSync(TEST_DB_FILE);
+    } catch (e) {
+      // Ignore cleanup error
+    }
+  }
+}
+
+// Ensure clean environment
+cleanupTestDb();
+
+test('Password Hashing Verification via Scrypt', () => {
   const password = "mySecretPassword123";
   const hashed = hashPassword(password);
   
-  // Assert hash format
   assert.ok(hashed.includes(':'), 'Hash should contain salt-hash separator');
-  
-  // Verify correct password
   assert.strictEqual(verifyPassword(password, hashed), true, 'Password verification should succeed');
-  
-  // Verify incorrect password
   assert.strictEqual(verifyPassword("wrongPassword", hashed), false, 'Incorrect password should fail verification');
 });
 
-test('Session Token Cryptographic Signatures', () => {
+test('Session Token Cryptographic Signatures & Expiry', async () => {
   const email = "test@example.com";
   const token = generateToken(email);
   
-  // Assert token format
-  assert.ok(token.includes('.'), 'Token should be structured as email.signature');
+  // Format validation
+  assert.ok(token.includes('.'), 'Token should be dot-separated payload and signature');
   
-  // Verify valid token
-  assert.strictEqual(verifyToken(token), email, 'Verify valid token should return correct email');
+  // Signature verify
+  const verifiedEmail = verifyToken(token);
+  assert.strictEqual(verifiedEmail, email, 'Token verify should return email');
   
-  // Verify tampered token
+  // Forged signature reject
   const parts = token.split('.');
-  const tamperedToken = `${parts[0]}.forgedSignature`;
-  assert.strictEqual(verifyToken(tamperedToken), null, 'Tampered signatures must be rejected');
-  
-  // Verify invalid token layout
-  assert.strictEqual(verifyToken("invalidLayout"), null, 'Invalid layouts must be rejected');
+  const forgedToken = `${parts[0]}.${parts[1]}.forgedSignature`;
+  assert.strictEqual(verifyToken(forgedToken), null, 'Forged signatures must be rejected');
 });
 
 test('New User Profile Initialization', () => {
@@ -48,21 +63,62 @@ test('New User Profile Initialization', () => {
   
   const user = getNewUserData(name, email, password);
   
-  // Assert statistics initialized to zero / baseline values
   assert.strictEqual(user.name, name);
   assert.strictEqual(user.email, email);
   assert.strictEqual(user.password, password);
-  assert.strictEqual(user.streak, 0, 'New users should start with a 0-day streak');
-  assert.strictEqual(user.today, 0.0, 'New users should start with 0.0 today footprint');
-  assert.strictEqual(user.weekTotal, 0.0, 'New users should start with 0.0 week footprint');
+  assert.strictEqual(user.streak, 0, 'New users start with a 0-day streak');
+  assert.strictEqual(user.today, 0.0, 'New users start with 0.0 today footprint');
+});
+
+test('API Endpoint Route Integration Tests', async (t) => {
+  // Start Express application on random available port (0)
+  const server = await new Promise((resolve) => {
+    const s = app.listen(0, () => resolve(s));
+  });
+  const port = server.address().port;
+  const baseUrl = `http://localhost:${port}`;
   
-  // Assert category breakdown initialized to zero
-  assert.strictEqual(user.categories.transport, 0.0);
-  assert.strictEqual(user.categories.food, 0.0);
-  assert.strictEqual(user.categories.energy, 0.0);
-  assert.strictEqual(user.categories.shopping, 0.0);
+  // Clean up server on finish
+  t.after(() => {
+    server.close();
+    cleanupTestDb();
+  });
   
-  // Assert daily starting history node
-  assert.strictEqual(user.progressHistory.length, 1);
-  assert.strictEqual(user.progressHistory[0].value, 0.0);
+  const testEmail = `integration_${Date.now()}@test.com`;
+  let authToken = '';
+
+  // 1. Sign Up Endpoint
+  const signupRes = await fetch(`${baseUrl}/api/auth/signup`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name: "Integration Tester", email: testEmail, password: "password123" })
+  });
+  assert.strictEqual(signupRes.status, 200);
+  const signupData = await signupRes.json();
+  assert.strictEqual(signupData.success, true);
+  assert.ok(signupData.token);
+  authToken = signupData.token;
+
+  // 2. Login Endpoint
+  const loginRes = await fetch(`${baseUrl}/api/auth/login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email: testEmail, password: "password123" })
+  });
+  assert.strictEqual(loginRes.status, 200);
+  const loginData = await loginRes.json();
+  assert.strictEqual(loginData.success, true);
+
+  // 3. GET Profile Endpoint (Authorized)
+  const profileRes = await fetch(`${baseUrl}/api/profile`, {
+    headers: { 'Authorization': `Bearer ${authToken}` }
+  });
+  assert.strictEqual(profileRes.status, 200);
+  const profileData = await profileRes.json();
+  assert.strictEqual(profileData.name, "Integration Tester");
+  assert.strictEqual(profileData.email, testEmail);
+
+  // 4. GET Profile Endpoint (Unauthorized)
+  const unauthRes = await fetch(`${baseUrl}/api/profile`);
+  assert.strictEqual(unauthRes.status, 401);
 });

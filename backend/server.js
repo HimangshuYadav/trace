@@ -8,7 +8,7 @@ const app = express();
 const PORT = process.env.PORT || 5001;
 
 const DB_DIR = path.join(__dirname, 'data');
-const DB_FILE = path.join(DB_DIR, 'db.json');
+const DB_FILE = process.env.DB_FILE || path.join(DB_DIR, 'db.json');
 
 // Security Headers Middleware
 app.use((req, res, next) => {
@@ -20,15 +20,15 @@ app.use((req, res, next) => {
 
 // Middleware
 app.use(cors()); // Allow cross-origin requests from frontend (Port 3000)
-app.use(express.json());
+app.use(express.json({ limit: '10kb' }));
 
 // HMAC secret for cryptographically signing sessions
 const JWT_SECRET = crypto.randomBytes(32).toString('hex');
 
-// Password security helpers
+// Password security helpers using Scrypt
 function hashPassword(password) {
   const salt = crypto.randomBytes(16).toString('hex');
-  const hash = crypto.pbkdf2Sync(password, salt, 1000, 64, 'sha512').toString('hex');
+  const hash = crypto.scryptSync(password, salt, 64).toString('hex');
   return `${salt}:${hash}`;
 }
 
@@ -38,28 +38,62 @@ function verifyPassword(password, storedPassword) {
     return password === storedPassword;
   }
   const [salt, hash] = storedPassword.split(':');
-  const verifyHash = crypto.pbkdf2Sync(password, salt, 1000, 64, 'sha512').toString('hex');
+  const verifyHash = crypto.scryptSync(password, salt, 64).toString('hex');
   return hash === verifyHash;
 }
 
-// Session signing helpers
+// Session signing helpers with expiration
 function generateToken(email) {
-  const signature = crypto.createHmac('sha256', JWT_SECRET).update(email).digest('base64url');
-  return `${email}.${signature}`;
+  const expiry = Date.now() + 24 * 60 * 60 * 1000; // 24 hours expiry
+  const payload = `${email}.${expiry}`;
+  const signature = crypto.createHmac('sha256', JWT_SECRET).update(payload).digest('base64url');
+  return `${payload}.${signature}`;
 }
 
 function verifyToken(token) {
   if (!token) return null;
-  const lastDotIndex = token.lastIndexOf('.');
-  if (lastDotIndex === -1) return null;
-  const email = token.substring(0, lastDotIndex);
-  const signature = token.substring(lastDotIndex + 1);
+  const parts = token.split('.');
+  if (parts.length < 3) return null;
   
-  const expectedSignature = crypto.createHmac('sha256', JWT_SECRET).update(email).digest('base64url');
-  if (signature === expectedSignature) {
-    return email;
+  const signature = parts.pop();
+  const expiry = parts.pop();
+  const email = parts.join('.'); // handles emails containing dots
+  
+  const payload = `${email}.${expiry}`;
+  const expectedSignature = crypto.createHmac('sha256', JWT_SECRET).update(payload).digest('base64url');
+  
+  if (signature !== expectedSignature) {
+    return null;
   }
-  return null;
+  
+  if (Date.now() > Number(expiry)) {
+    return null; // Token expired
+  }
+  
+  return email;
+}
+
+// Input validation & rate limiting helpers
+function isValidEmail(email) {
+  const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return re.test(email) && email.length < 255;
+}
+
+const rateLimits = {};
+function rateLimiter(req, res, next) {
+  const ip = req.ip;
+  const now = Date.now();
+  if (!rateLimits[ip]) {
+    rateLimits[ip] = [];
+  }
+  rateLimits[ip] = rateLimits[ip].filter(time => now - time < 60000);
+  
+  if (rateLimits[ip].length >= 100) {
+    return res.status(429).json({ success: false, message: "Too many requests. Please try again later." });
+  }
+  
+  rateLimits[ip].push(now);
+  next();
 }
 
 // Seeding helper to create user parameters (for the exploration profile Taylor Young)
@@ -284,21 +318,34 @@ function authenticateToken(req, res, next) {
 // ==========================================================================
 
 // Sign Up Route
-app.post('/api/auth/signup', (req, res) => {
-  const { name, email, password } = req.body;
+app.post('/api/auth/signup', rateLimiter, (req, res) => {
+  let { name, email, password } = req.body;
   
   if (!name || !email || !password) {
     return res.status(400).json({ success: false, message: "Missing sign up parameters." });
   }
 
+  name = name.trim();
+  email = email.trim().toLowerCase();
+
+  if (name.length < 2 || name.length > 70) {
+    return res.status(400).json({ success: false, message: "Name must be between 2 and 70 characters." });
+  }
+  if (!isValidEmail(email) || email.length > 255) {
+    return res.status(400).json({ success: false, message: "Invalid email format or email too long." });
+  }
+  if (password.length < 8 || password.length > 100) {
+    return res.status(400).json({ success: false, message: "Password must be between 8 and 100 characters." });
+  }
+
   const db = readDb();
-  const exists = db.users.find(u => u.email === email.toLowerCase());
+  const exists = db.users.find(u => u.email === email);
   
   if (exists) {
     return res.status(400).json({ success: false, message: "Email is already registered." });
   }
 
-  const newUser = getNewUserData(name, email.toLowerCase(), hashPassword(password));
+  const newUser = getNewUserData(name, email, hashPassword(password));
   db.users.push(newUser);
   writeDb(db);
 
@@ -308,15 +355,17 @@ app.post('/api/auth/signup', (req, res) => {
 });
 
 // Login Route
-app.post('/api/auth/login', (req, res) => {
-  const { email, password } = req.body;
+app.post('/api/auth/login', rateLimiter, (req, res) => {
+  let { email, password } = req.body;
   
   if (!email || !password) {
     return res.status(400).json({ success: false, message: "Missing login parameters." });
   }
 
+  email = email.trim().toLowerCase();
+
   const db = readDb();
-  const user = db.users.find(u => u.email === email.toLowerCase());
+  const user = db.users.find(u => u.email === email);
 
   if (!user || !verifyPassword(password, user.password)) {
     return res.status(401).json({ success: false, message: "Invalid email or password." });
@@ -429,6 +478,12 @@ app.post('/api/reset', authenticateToken, (req, res) => {
   } else {
     res.status(404).json({ success: false, message: "User not found." });
   }
+});
+
+// Global Error Handler Middleware
+app.use((err, req, res, next) => {
+  console.error("Unhandled API Error:", err);
+  res.status(500).json({ success: false, message: "Internal server error occurred." });
 });
 
 // Export elements for unit testing
