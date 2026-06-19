@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trace — Every choice, counted.</title>
+  
+  <!-- SEO Meta Tags -->
+  <meta name="description" content="Trace is a modern, scientific carbon footprint tracker that helps you measure and reduce the environmental impact of your daily habits.">
+  <meta name="keywords" content="carbon footprint, footprint tracker, sustainability, climate change, green living, carbon emission tracker">
+  
+  <!-- DM Serif Display & Inter & JetBrains Mono Fonts from Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Inter:wght@400;500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  
+  <!-- Phosphor Icons Outline Style CDN -->
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+  
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="style.css">
+  
+  <!-- Application Logic -->
+  <script src="app.js" defer></script>
+</head>
+<body>
+
+  <!-- Navigation Bar (Stays at top of all pages) -->
+  <nav class="nav-bar">
+    <div class="nav-container">
+      <div class="nav-left">
+        <a href="#" class="brand-logo" onclick="navigateTo('home', event)">Trace</a>
+      </div>
+      <div class="nav-center">
+        <ul class="nav-links">
+          <li><a href="#home" class="nav-link active" data-page="home" onclick="navigateTo('home', event)">Home</a></li>
+          <li><a href="#dashboard" class="nav-link" data-page="dashboard" onclick="navigateTo('dashboard', event)">Dashboard</a></li>
+          <li><a href="#log" class="nav-link" data-page="log" onclick="navigateTo('log', event)">Log</a></li>
+          <li><a href="#insights" class="nav-link" data-page="insights" onclick="navigateTo('insights', event)">Insights</a></li>
+          <li><a href="#progress" class="nav-link" data-page="progress" onclick="navigateTo('progress', event)">Progress</a></li>
+        </ul>
+      </div>
+      
+      <!-- Nav state right (Updated dynamically by JS based on login state) -->
+      <div class="nav-right" id="nav-auth-state">
+        <a href="#" class="nav-text-link" onclick="openAuthModal('signin', event)">Sign in</a>
+        <a href="#" class="nav-btn" onclick="openAuthModal('signup', event)">Get started</a>
+      </div>
+      
+      <!-- Mobile menu trigger -->
+      <button class="mobile-menu-toggle" onclick="toggleMobileMenu()">
+        <i class="ph ph-list" id="mobile-toggle-icon"></i>
+      </button>
+    </div>
+    
+    <!-- Mobile dropdown menu -->
+    <div class="mobile-menu-dropdown hidden" id="mobile-nav-dropdown">
+      <a href="#home" class="mobile-nav-link active" data-page="home" onclick="navigateTo('home', event)">Home</a>
+      <a href="#dashboard" class="mobile-nav-link" data-page="dashboard" onclick="navigateTo('dashboard', event)">Dashboard</a>
+      <a href="#log" class="mobile-nav-link" data-page="log" onclick="navigateTo('log', event)">Log</a>
+      <a href="#insights" class="mobile-nav-link" data-page="insights" onclick="navigateTo('insights', event)">Insights</a>
+      <a href="#progress" class="mobile-nav-link" data-page="progress" onclick="navigateTo('progress', event)">Progress</a>
+      <div class="mobile-menu-divider"></div>
+      <!-- Mobile state auth -->
+      <div id="mobile-auth-state">
+        <a href="#" class="mobile-nav-link text-link" onclick="openAuthModal('signin', event)">Sign in</a>
+        <a href="#" class="mobile-btn" onclick="openAuthModal('signup', event)">Get started</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Dynamic Site Viewport -->
+  <main id="content-area">
+    <!-- Active page gets stamped here by app.js -->
+  </main>
+
+  <!-- Footer (Appears on all pages) -->
+  <footer class="footer-section">
+    <div class="footer-container">
+      
+      <div class="footer-column brand-col">
+        <span class="footer-brand">Trace</span>
+        <p class="footer-tagline">Every choice, counted.</p>
+      </div>
+
+      <div class="footer-column">
+        <h4 class="footer-heading">Product</h4>
+        <ul class="footer-links">
+          <li><a href="#dashboard" onclick="navigateTo('dashboard', event)">Dashboard</a></li>
+          <li><a href="#log" onclick="navigateTo('log', event)">Log Habits</a></li>
+          <li><a href="#insights" onclick="navigateTo('insights', event)">Weekly Insights</a></li>
+          <li><a href="#progress" onclick="navigateTo('progress', event)">Progress History</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-column">
+        <h4 class="footer-heading">Company</h4>
+        <ul class="footer-links">
+          <li><a href="#">About Us</a></li>
+          <li><a href="#">Data Journal</a></li>
+          <li><a href="#">Privacy Policy</a></li>
+          <li><a href="#">Terms of Service</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-column">
+        <h4 class="footer-heading">Contact</h4>
+        <span class="footer-email">hello@trace.earth</span>
+      </div>
+
+    </div>
+    <div class="footer-bottom">
+      <p class="footer-copyright">© 2025 Trace. Built to help, not to alarm. <a href="#" onclick="resetAllDatabase(event)" id="footer-reset-btn" class="hidden" style="margin-left: 12px; text-decoration: underline; color: #6B7280; font-weight: 500;">Reset database</a></p>
+    </div>
+  </footer>
+
+
+  <!-- ==================== AUTHENTICATION OVERLAY CARD ==================== -->
+  <div id="auth-modal" class="auth-modal-overlay hidden">
+    <div class="auth-modal-card">
+      <button class="auth-modal-close" onclick="closeAuthModal()"><i class="ph ph-x"></i></button>
+      
+      <!-- Sign In View -->
+      <div id="auth-signin-view">
+        <h3 class="auth-title">Welcome back to Trace</h3>
+        <p class="auth-subtitle">Sign in to resume tracking your footprint.</p>
+        <form onsubmit="handleSignInSubmit(event)">
+          <div class="form-group">
+            <label class="form-label">Email address</label>
+            <input type="email" required class="form-input" id="signin-email" placeholder="taylor@trace.earth">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Password</label>
+            <input type="password" required class="form-input" id="signin-password" placeholder="••••••••">
+          </div>
+          <div class="auth-error font-mono text-warning hidden" id="signin-error">Incorrect email or password.</div>
+          <button type="submit" class="btn-auth-submit">Sign in</button>
+        </form>
+        <div class="auth-toggle">
+          Don't have an account? <a href="#" onclick="toggleAuthView('signup', event)">Sign up free</a>
+        </div>
+      </div>
+      
+      <!-- Sign Up View -->
+      <div id="auth-signup-view" class="hidden">
+        <h3 class="auth-title">Create your Trace account</h3>
+        <p class="auth-subtitle">Start understanding and reducing your footprint.</p>
+        <form onsubmit="handleSignUpSubmit(event)">
+          <div class="form-group">
+            <label class="form-label">Your name</label>
+            <input type="text" required class="form-input" id="signup-name" placeholder="Taylor Young">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Email address</label>
+            <input type="email" required class="form-input" id="signup-email" placeholder="you@example.com">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Password</label>
+            <input type="password" required class="form-input" id="signup-password" placeholder="••••••••">
+          </div>
+          <div class="auth-error font-mono text-warning hidden" id="signup-error">Email is already registered.</div>
+          <button type="submit" class="btn-auth-submit">Create account</button>
+        </form>
+        <div class="auth-toggle">
+          Already have an account? <a href="#" onclick="toggleAuthView('signin', event)">Sign in</a>
+        </div>
+      </div>
+      
+    </div>
+  </div>
+
+
+  <!-- ==================== HTML TEMPLATES ==================== -->
+
+  <!-- Page 1: Homepage Template -->
+  <template id="tmpl-page-home">
+    <div class="page-home">
+      <!-- Section A: Hero -->
+      <section class="hero-section">
+        <div class="hero-container">
+          <div class="hero-left">
+            <span class="eyebrow">Carbon tracking, reimagined</span>
+            <h1 class="hero-title">Every choice you make has a weight.</h1>
+            <p class="hero-subtitle">Trace measures the carbon footprint of your daily habits and turns the data into actions you can actually take.</p>
+            <div class="hero-ctas">
+              <a href="#signup" class="btn btn-filled" onclick="openAuthModal('signup', event)">Start tracking free</a>
+              <a href="#how-it-works" class="btn btn-outlined">See how it works</a>
+            </div>
+            <div class="hero-stats">
+              <span class="stat-item">12,400 users tracking</span>
+              <span class="stat-divider">·</span>
+              <span class="stat-item">4.2 kg avg. daily saving</span>
+              <span class="stat-divider">·</span>
+              <span class="stat-item">Free forever</span>
+            </div>
+          </div>
+          <div class="hero-right">
+            <!-- Schematic Browser Mockup of Dashboard -->
+            <div class="browser-mockup">
+              <div class="browser-header">
+                <div class="browser-dot red"></div>
+                <div class="browser-dot yellow"></div>
+                <div class="browser-dot green"></div>
+                <div class="browser-title-bar">trace.earth/dashboard</div>
+              </div>
+              <div class="browser-content">
+                <div class="mock-score-ring-container">
+                  <div class="mock-score-circle">
+                    <svg viewBox="0 0 100 100" class="svg-ring">
+                      <circle cx="50" cy="50" r="42" class="ring-bg"></circle>
+                      <circle cx="50" cy="50" r="42" class="ring-fill" stroke-dasharray="264" stroke-dashoffset="66"></circle>
+                    </svg>
+                    <div class="mock-score-text">
+                      <span class="mock-score-num">7.4</span>
+                      <span class="mock-score-unit">kg CO₂</span>
+                    </div>
+                  </div>
+                  <div class="mock-score-meta">
+                    <span class="mock-label">Today's Footprint</span>
+                    <span class="mock-saving">-26.0% vs target</span>
+                  </div>
+                </div>
+                <div class="mock-category-list">
+                  <div class="mock-cat-row">
+                    <i class="ph ph-car text-slate"></i>
+                    <div class="mock-bar-container"><div class="mock-bar" style="width: 55%;"></div></div>
+                  </div>
+                  <div class="mock-cat-row">
+                    <i class="ph ph-fork-knife text-slate"></i>
+                    <div class="mock-bar-container"><div class="mock-bar" style="width: 30%;"></div></div>
+                  </div>
+                  <div class="mock-cat-row">
+                    <i class="ph ph-lightning text-slate"></i>
+                    <div class="mock-bar-container"><div class="mock-bar" style="width: 10%;"></div></div>
+                  </div>
+                </div>
+                <div class="mock-insight-card">
+                  <span class="mock-badge">High impact</span>
+                  <div class="mock-card-title">Switch to plant-based lunch</div>
+                  <div class="mock-card-desc">Saves up to 4.2 kg CO₂/week</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section B: How it works -->
+      <section id="how-it-works" class="how-section">
+        <div class="how-container">
+          <span class="section-label">How Trace works</span>
+          <div class="three-col-grid">
+            <div class="how-column">
+              <div class="how-icon-box">
+                <i class="ph ph-pencil-plus"></i>
+              </div>
+              <h3 class="column-heading">Log what you did</h3>
+              <p class="column-body">Add a commute, a meal, or an energy bill in under 30 seconds.</p>
+            </div>
+            
+            <div class="how-column">
+              <div class="how-icon-box">
+                <i class="ph ph-chart-bar"></i>
+              </div>
+              <h3 class="column-heading">See your footprint</h3>
+              <p class="column-body">Instantly see the kg CO₂ impact — broken down by category and compared to your baseline.</p>
+            </div>
+            
+            <div class="how-column">
+              <div class="how-icon-box">
+                <i class="ph ph-sparkles"></i>
+              </div>
+              <h3 class="column-heading">Act on what matters</h3>
+              <p class="column-body">Get one ranked, personalised tip per week based on where your footprint is highest.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section C: Feature Highlights -->
+      <section class="features-section">
+        <!-- Row 1: Left Text, Right UI -->
+        <div class="feature-row">
+          <div class="feature-text-side">
+            <span class="eyebrow">Dashboard</span>
+            <h2 class="feature-heading">Your footprint at a glance</h2>
+            <p class="feature-body">A single circular score shows today's total. Four category rings below show exactly where it's coming from — transport, food, energy, shopping.</p>
+          </div>
+          <div class="feature-ui-side">
+            <div class="flat-ui-score-illustration">
+              <svg viewBox="0 0 200 200" class="score-large-svg">
+                <circle cx="100" cy="100" r="80" stroke="#E2DDD6" stroke-width="12" fill="none"></circle>
+                <circle cx="100" cy="100" r="80" stroke="#2D5016" stroke-width="12" fill="none" stroke-linecap="round" stroke-dasharray="502" stroke-dashoffset="130"></circle>
+                <text x="100" y="95" text-anchor="middle" class="svg-score-num">7.4</text>
+                <text x="100" y="125" text-anchor="middle" class="svg-score-lbl">kg CO₂ today</text>
+              </svg>
+              <div class="mini-category-rings">
+                <div class="mini-ring-item">
+                  <div class="mini-circle transport"></div>
+                  <span>Transport</span>
+                </div>
+                <div class="mini-ring-item">
+                  <div class="mini-circle food"></div>
+                  <span>Food</span>
+                </div>
+                <div class="mini-ring-item">
+                  <div class="mini-circle energy"></div>
+                  <span>Energy</span>
+                </div>
+                <div class="mini-ring-item">
+                  <div class="mini-circle shopping"></div>
+                  <span>Shopping</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Row 2: Right Text, Left UI -->
+        <div class="feature-row reverse">
+          <div class="feature-text-side">
+            <span class="eyebrow">Insights</span>
+            <h2 class="feature-heading">Ranked by impact, not by guilt</h2>
+            <p class="feature-body">We surface the one change that would reduce your footprint the most — calculated from your actual logs, not generic averages.</p>
+          </div>
+          <div class="feature-ui-side">
+            <div class="flat-ui-cards-illustration">
+              <div class="flat-card top-offset">
+                <div class="flat-card-head">
+                  <span class="pill-tag text-warning bg-warning-light">High impact</span>
+                  <span class="card-cat font-mono text-secondary">FOOD</span>
+                </div>
+                <h4 class="flat-card-title">Switch to a plant-based lunch three times a week</h4>
+                <div class="flat-card-impact font-mono text-primary">Saves 4.2 kg CO₂/week</div>
+              </div>
+              <div class="flat-card behind-1"></div>
+              <div class="flat-card behind-2"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section D: CTA Banner -->
+      <section class="cta-banner-section">
+        <div class="cta-banner-container">
+          <h2 class="banner-title">Start understanding your footprint today.</h2>
+          <p class="banner-subtext">Free to use. No credit card. Takes 2 minutes to set up.</p>
+          <a href="#signup" class="banner-btn" onclick="openAuthModal('signup', event)">Create your account</a>
+        </div>
+      </section>
+    </div>
+  </template>
+
+  <!-- Page 2: Dashboard Template -->
+  <template id="tmpl-page-dashboard">
+    <div class="page-dashboard">
+      <div class="sidebar-layout-container">
+        
+        <!-- Left Sidebar (260px) -->
+        <aside class="dashboard-sidebar">
+          <div class="sidebar-user">
+            <div class="user-avatar" id="sidebar-avatar">TY</div>
+            <div class="user-info">
+              <span class="user-name" id="sidebar-name">Taylor Young</span>
+              <span class="user-target font-mono" id="sidebar-target">Target: 10.0 kg CO₂</span>
+            </div>
+          </div>
+          
+          <nav class="sidebar-nav">
+            <a href="#dashboard" class="sidebar-link active" onclick="navigateTo('dashboard', event)">
+              <i class="ph ph-layout"></i> Dashboard
+            </a>
+            <a href="#log" class="sidebar-link" onclick="navigateTo('log', event)">
+              <i class="ph ph-pencil-plus"></i> Log Activity
+            </a>
+            <a href="#insights" class="sidebar-link" onclick="navigateTo('insights', event)">
+              <i class="ph ph-sparkles"></i> Insights
+            </a>
+            <a href="#progress" class="sidebar-link" onclick="navigateTo('progress', event)">
+              <i class="ph ph-chart-line"></i> Progress
+            </a>
+          </nav>
+          
+          <div class="sidebar-streak">
+            <div class="streak-box">
+              <i class="ph ph-fire-simple text-warning"></i>
+              <span class="streak-text" id="sidebar-streak-text">9-day streak</span>
+            </div>
+          </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="dashboard-content">
+          <!-- Top Row: Four Metrics -->
+          <div class="metrics-grid">
+            <div class="metric-card">
+              <span class="metric-label">Today's footprint</span>
+              <div class="metric-val-wrapper">
+                <span class="metric-val font-display italic text-primary" id="dash-today-val">7.4 kg CO₂</span>
+              </div>
+            </div>
+            <div class="metric-card">
+              <span class="metric-label">vs. your target</span>
+              <div class="metric-val-wrapper">
+                <span class="metric-val text-primary" id="dash-diff-val">−26.0%</span>
+              </div>
+            </div>
+            <div class="metric-card">
+              <span class="metric-label">This week</span>
+              <div class="metric-val-wrapper">
+                <span class="metric-val font-mono text-secondary" id="dash-week-val">41.2 kg CO₂</span>
+              </div>
+            </div>
+            <div class="metric-card">
+              <span class="metric-label">Best day this month</span>
+              <div class="metric-val-wrapper">
+                <span class="metric-val font-mono text-secondary" id="dash-best-val">3.9 kg CO₂</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Second Row: Bar Chart & Breakdown -->
+          <div class="panels-grid">
+            <!-- Left Panel: Weekly Footprint (60% width) -->
+            <div class="panel-card main-panel">
+              <h3 class="panel-heading">This week's footprint</h3>
+              <div class="chart-container weekly-chart-wrapper">
+                <!-- Bar Chart (SVG-based for exact styling and rendering) -->
+                <svg viewBox="0 0 540 200" class="weekly-bar-chart" id="dash-weekly-chart">
+                  <!-- Dashed target line (at y = 100 representing 10 kg CO2) -->
+                  <line x1="40" y1="100" x2="520" y2="100" stroke="#C97B2A" stroke-width="1" stroke-dasharray="4,4"></line>
+                  <!-- Labels for target line -->
+                  <text x="525" y="104" class="chart-axis-label font-mono" fill="#C97B2A" text-anchor="start">10.0</text>
+                  
+                  <!-- Y Axis Labels -->
+                  <text x="30" y="184" class="chart-axis-label font-mono" text-anchor="end">0.0</text>
+                  <text x="30" y="104" class="chart-axis-label font-mono" text-anchor="end">10.0</text>
+                  <text x="30" y="24" class="chart-axis-label font-mono" text-anchor="end">20.0</text>
+                  
+                  <!-- Mon: 8.5 kg CO2 (85px high) -->
+                  <rect x="58" y="99" width="36" height="85" class="bar-forest-green" rx="2"></rect>
+                  <!-- Tue: 12.2 kg CO2 (122px high) -->
+                  <rect x="124" y="62" width="36" height="122" class="bar-amber" rx="2"></rect>
+                  <!-- Wed: 9.1 kg CO2 (91px high) -->
+                  <rect x="190" y="93" width="36" height="91" class="bar-forest-green" rx="2"></rect>
+                  <!-- Thu: 7.4 kg CO2 (74px high) -->
+                  <rect x="256" y="110" width="36" height="74" class="bar-forest-green" id="dash-bar-thu" rx="2"></rect>
+                  <!-- Fri: 11.0 kg CO2 (110px high) -->
+                  <rect x="322" y="74" width="36" height="110" class="bar-amber" rx="2"></rect>
+                  <!-- Sat: 6.8 kg CO2 (68px high) -->
+                  <rect x="388" y="116" width="36" height="68" class="bar-forest-green" rx="2"></rect>
+                  <!-- Sun: 4.2 kg CO2 (42px) -->
+                  <rect x="454" y="142" width="36" height="42" class="bar-forest-green" rx="2"></rect>
+
+                  <!-- X Axis line -->
+                  <line x1="40" y1="184" x2="520" y2="184" stroke="#E2DDD6" stroke-width="1"></line>
+
+                  <!-- X Axis Labels -->
+                  <text x="76" y="198" class="chart-axis-label" text-anchor="middle">Mon</text>
+                  <text x="142" y="198" class="chart-axis-label" text-anchor="middle">Tue</text>
+                  <text x="208" y="198" class="chart-axis-label" text-anchor="middle">Wed</text>
+                  <text x="274" y="198" class="chart-axis-label" text-anchor="middle">Thu</text>
+                  <text x="340" y="198" class="chart-axis-label" text-anchor="middle">Fri</text>
+                  <text x="406" y="198" class="chart-axis-label" text-anchor="middle">Sat</text>
+                  <text x="472" y="198" class="chart-axis-label" text-anchor="middle">Sun</text>
+                </svg>
+              </div>
+            </div>
+
+            <!-- Right Panel: Category Breakdown (40% width) -->
+            <div class="panel-card breakdown-panel">
+              <h3 class="panel-heading">Category breakdown</h3>
+              <div class="breakdown-list">
+                <!-- Populated dynamically by app.js (sorted dynamically) -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Third Row: Today's Nudge -->
+          <div class="nudge-section">
+            <div class="nudge-card">
+              <div class="nudge-accent"></div>
+              <div class="nudge-body">
+                <div class="nudge-left">
+                  <p class="nudge-text">Your transport footprint is 2.3× higher than average. Try cycling or public transit twice this week.</p>
+                  <a href="#insights" class="nudge-link" onclick="navigateTo('insights', event)">See all insights →</a>
+                </div>
+                <button class="btn-nudge-action" onclick="acceptNudge(event)">Accept Nudge</button>
+              </div>
+            </div>
+          </div>
+        </main>
+
+      </div>
+    </div>
+  </template>
+
+  <!-- Page 3: Log Activity Template -->
+  <template id="tmpl-page-log">
+    <div class="page-log">
+      <div class="log-container">
+        
+        <div class="log-header">
+          <h1 class="log-title">Log an activity</h1>
+          <p class="log-subtitle text-secondary">What did you do today?</p>
+        </div>
+
+        <!-- Category Tabs -->
+        <div class="category-tabs" id="log-tabs">
+          <button class="tab-pill active" onclick="switchLogCategory('transport')">Transport</button>
+          <button class="tab-pill" onclick="switchLogCategory('food')">Food</button>
+          <button class="tab-pill" onclick="switchLogCategory('energy')">Energy</button>
+          <button class="tab-pill" onclick="switchLogCategory('shopping')">Shopping</button>
+        </div>
+
+        <!-- Activity Option List -->
+        <div class="activity-list" id="log-activity-list">
+          <!-- Populated by JS -->
+        </div>
+
+        <!-- Quantity Input Control -->
+        <div class="quantity-input-section">
+          <label class="quantity-label" id="quantity-input-label">Distance (km)</label>
+          <div class="stepper-control">
+            <button class="step-btn" onclick="adjustQuantity(-10)"><i class="ph ph-minus"></i></button>
+            <input type="number" class="stepper-input font-mono" id="log-quantity" value="10" min="1" oninput="updateLiveCalculation()">
+            <button class="step-btn" onclick="adjustQuantity(10)"><i class="ph ph-plus"></i></button>
+          </div>
+          
+          <!-- Live Calculation Output -->
+          <div class="live-calculation font-mono" id="live-calc-output">
+            This adds 2.1 kg CO₂ to today
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="log-actions">
+          <button class="btn-log-submit" onclick="submitLog()">Add to today's log</button>
+          <button class="btn-log-another" onclick="resetLogForm()">Log another activity</button>
+        </div>
+
+      </div>
+    </div>
+  </template>
+
+  <!-- Page 4: Insights Template -->
+  <template id="tmpl-page-insights">
+    <div class="page-insights">
+      <div class="filter-layout-container">
+        
+        <!-- Left Filter Panel (240px) -->
+        <aside class="insights-filter-panel">
+          <div class="filter-section">
+            <h4 class="filter-title">Filter by category</h4>
+            <div class="checkbox-group">
+              <label class="filter-checkbox-label">
+                <input type="checkbox" checked class="filter-checkbox" data-category="transport" onchange="applyInsightFilters()">
+                <span>Transport</span>
+              </label>
+              <label class="filter-checkbox-label">
+                <input type="checkbox" checked class="filter-checkbox" data-category="food" onchange="applyInsightFilters()">
+                <span>Food</span>
+              </label>
+              <label class="filter-checkbox-label">
+                <input type="checkbox" checked class="filter-checkbox" data-category="energy" onchange="applyInsightFilters()">
+                <span>Energy</span>
+              </label>
+              <label class="filter-checkbox-label">
+                <input type="checkbox" checked class="filter-checkbox" data-category="shopping" onchange="applyInsightFilters()">
+                <span>Shopping</span>
+              </label>
+            </div>
+          </div>
+          
+          <div class="filter-section">
+            <h4 class="filter-title">Filter by impact</h4>
+            <div class="radio-group">
+              <label class="filter-radio-label">
+                <input type="radio" name="impact-filter" value="all" checked onchange="applyInsightFilters()">
+                <span>All</span>
+              </label>
+              <label class="filter-radio-label">
+                <input type="radio" name="impact-filter" value="high" onchange="applyInsightFilters()">
+                <span>High only</span>
+              </label>
+              <label class="filter-radio-label">
+                <input type="radio" name="impact-filter" value="medium-plus" onchange="applyInsightFilters()">
+                <span>Medium and above</span>
+              </label>
+            </div>
+          </div>
+
+          <button class="btn-reset-filters" onclick="resetInsightFilters()">Reset filters</button>
+        </aside>
+
+        <!-- Main Insights Content Area -->
+        <main class="insights-content">
+          <div class="insights-header">
+            <h1 class="insights-title">Your insights</h1>
+            <p class="insights-subtitle text-secondary">Based on your last 30 days of activity.</p>
+          </div>
+
+          <div class="insights-cards-list" id="insights-list">
+            <!-- Populated by JS -->
+          </div>
+
+          <!-- Empty State -->
+          <div class="empty-state hidden" id="insights-empty-state">
+            <span class="empty-state-target font-mono">0.0 kg CO₂</span>
+            <p class="empty-state-text">Log your first activity to see your footprint</p>
+          </div>
+        </main>
+
+      </div>
+    </div>
+  </template>
+
+  <!-- Page 5: Progress Template -->
+  <template id="tmpl-page-progress">
+    <div class="page-progress">
+      <div class="progress-container">
+        
+        <div class="progress-header">
+          <h1 class="progress-title">Your progress</h1>
+          <!-- Time Range Toggle -->
+          <div class="time-toggle-group">
+            <button class="time-btn active" onclick="switchTimeRange('30')">30 days</button>
+            <button class="time-btn" onclick="switchTimeRange('90')">90 days</button>
+            <button class="time-btn" onclick="switchTimeRange('365')">1 year</button>
+          </div>
+        </div>
+
+        <!-- Top Row Summary Cards -->
+        <div class="progress-stats-grid">
+          <div class="stat-card">
+            <span class="stat-label">Footprint reduction</span>
+            <div class="stat-val-wrapper">
+              <span class="stat-value text-primary" id="progress-reduction-val">-18.0% vs. start</span>
+            </div>
+          </div>
+          <div class="stat-card">
+            <span class="stat-label">Total CO₂ avoided</span>
+            <div class="stat-val-wrapper">
+              <span class="stat-value font-display italic text-primary" id="progress-avoided-val">34.6 kg CO₂</span>
+            </div>
+          </div>
+          <div class="stat-card">
+            <span class="stat-label">Days below target</span>
+            <div class="stat-val-wrapper">
+              <span class="stat-value text-primary" id="progress-days-val">22 of 30</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Main Chart: Line Chart (SVG based) -->
+        <div class="progress-chart-card">
+          <div class="chart-header">
+            <div class="legend">
+              <div class="legend-item"><span class="legend-line solid-green"></span>Your footprint</div>
+              <div class="legend-item"><span class="legend-line dashed-slate"></span>Your starting baseline</div>
+              <div class="legend-item"><span class="legend-line dashed-amber"></span>Daily target (10.0 kg CO₂)</div>
+            </div>
+          </div>
+          <div class="line-chart-container" style="position: relative;">
+            <svg viewBox="0 0 1000 280" class="line-chart-svg" id="progress-line-chart">
+              
+              <!-- Guide line vertical crosshair (Dynamic) -->
+              <line id="chart-crosshair" x1="0" y1="30" x2="0" y2="240" stroke="#E2DDD6" stroke-width="1.5" stroke-dasharray="4,4" style="display: none; pointer-events: none;"></line>
+
+              <!-- Shading under the line (approx 8% opacity fill) -->
+              <path d="M 50,180 L 150,195 L 250,170 L 350,145 L 450,165 L 550,120 L 650,135 L 750,98 L 850,110 L 950,85 L 950,240 L 50,240 Z" fill="#2D5016" fill-opacity="0.08" id="chart-area-fill"></path>
+              
+              <!-- Starting baseline: 12.0 kg CO2 (dashed slate y=150) -->
+              <line x1="50" y1="150" x2="950" y2="150" stroke="#6B7280" stroke-width="1.5" stroke-dasharray="6,4"></line>
+              
+              <!-- Daily Target line: 10.0 kg CO2 (dashed amber y=180) -->
+              <line x1="50" y1="180" x2="950" y2="180" stroke="#C97B2A" stroke-width="1.5" stroke-dasharray="4,4"></line>
+              
+              <!-- User footprint line: Solid forest green 2px -->
+              <path d="M 50,180 L 150,195 L 250,170 L 350,145 L 450,165 L 550,120 L 650,135 L 750,98 L 850,110 L 950,85" fill="none" stroke="#2D5016" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" id="chart-footprint-line"></path>
+              
+              <!-- Anchor Dots for interactive hover states -->
+              <circle cx="50" cy="180" r="4" class="chart-dot" data-date="Jun 1" data-val="10.0 kg CO₂"></circle>
+              <circle cx="150" cy="195" r="4" class="chart-dot" data-date="Jun 3" data-val="9.0 kg CO₂"></circle>
+              <circle cx="250" cy="170" r="4" class="chart-dot" data-date="Jun 5" data-val="10.7 kg CO₂"></circle>
+              <circle cx="350" cy="145" r="4" class="chart-dot" data-date="Jun 7" data-val="12.3 kg CO₂"></circle>
+              <circle cx="450" cy="165" r="4" class="chart-dot" data-date="Jun 9" data-val="11.0 kg CO₂"></circle>
+              <circle cx="550" cy="120" r="4" class="chart-dot" data-date="Jun 11" data-val="14.0 kg CO₂"></circle>
+              <circle cx="650" cy="135" r="4" class="chart-dot" data-date="Jun 13" data-val="13.0 kg CO₂"></circle>
+              <circle cx="750" cy="98" r="4" class="chart-dot" data-date="Jun 15" data-val="15.5 kg CO₂"></circle>
+              <circle cx="850" cy="110" r="4" class="chart-dot" data-date="Jun 17" data-val="14.7 kg CO₂"></circle>
+              <circle cx="950" cy="85" r="4" class="chart-dot active" data-date="Jun 19 (Today)" data-val="7.4 kg CO₂" id="today-chart-dot"></circle>
+
+              <!-- X-Axis Labels -->
+              <text x="50" y="260" class="chart-axis-label font-mono" text-anchor="middle">Jun 1</text>
+              <text x="250" y="260" class="chart-axis-label font-mono" text-anchor="middle">Jun 5</text>
+              <text x="450" y="260" class="chart-axis-label font-mono" text-anchor="middle">Jun 9</text>
+              <text x="650" y="260" class="chart-axis-label font-mono" text-anchor="middle">Jun 13</text>
+              <text x="850" y="260" class="chart-axis-label font-mono" text-anchor="middle">Jun 17</text>
+              <text x="950" y="260" class="chart-axis-label font-mono" text-anchor="end">Today</text>
+
+              <!-- Y-Axis Labels -->
+              <text x="25" y="244" class="chart-axis-label font-mono" text-anchor="end">6.0</text>
+              <text x="25" y="184" class="chart-axis-label font-mono" text-anchor="end">10.0</text>
+              <text x="25" y="154" class="chart-axis-label font-mono" text-anchor="end">12.0</text>
+              <text x="25" y="89" class="chart-axis-label font-mono" text-anchor="end">16.3</text>
+            </svg>
+
+            <!-- Line Chart Tooltip -->
+            <div class="chart-tooltip" id="progress-chart-tooltip" style="left: 950px; top: 30px; display: block;">
+              <div class="tooltip-date">Jun 19 (Today)</div>
+              <div class="tooltip-val font-mono">7.4 kg CO₂</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Category Breakdown Section -->
+        <div class="progress-breakdown-section">
+          <h3 class="breakdown-section-heading">Where you've improved</h3>
+          <div class="breakdown-rows-container" id="progress-breakdown-container">
+            <!-- Populated dynamically by app.js -->
+          </div>
+        </div>
+
+        <!-- Milestone Timeline -->
+        <div class="milestone-timeline-section">
+          <h3 class="timeline-heading">Milestones achieved</h3>
+          <div class="timeline-wrapper">
+            <div class="timeline-line"></div>
+            
+            <div class="timeline-nodes" id="milestones-nodes-container">
+              <!-- Populated dynamically by app.js -->
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </template>
+
+</body>
+</html>
