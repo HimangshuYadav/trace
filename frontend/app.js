@@ -3,7 +3,7 @@
  * Frontend Application Controller
  */
 
-const API_BASE = 'http://localhost:5001';
+const API_BASE = 'https://trace-api-0o24.onrender.com';
 
 // Global application state
 let currentPage = 'home';
