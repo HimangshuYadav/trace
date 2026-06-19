@@ -113,7 +113,7 @@ function checkAuth() {
     // Logged in state
     if (authStateContainer) {
       authStateContainer.innerHTML = `
-        <span class="nav-text-link" style="font-weight: 500; color: var(--color-green-primary);"><i class="ph ph-user" style="vertical-align: middle;"></i> ${userProfile.name}</span>
+        <span class="nav-text-link" style="font-weight: 500; color: var(--color-green-primary);"><i class="ph ph-user" style="vertical-align: middle;" aria-hidden="true"></i> ${userProfile.name}</span>
         <a href="#" class="nav-btn btn-outlined" onclick="logout(event)" style="padding: 0.4rem 1rem; margin-left: 10px;">Sign out</a>
       `;
     }
@@ -180,6 +180,8 @@ function navigateTo(page, event) {
     // Close mobile menus on navigating
     document.getElementById('mobile-nav-dropdown').classList.add('hidden');
     document.getElementById('mobile-toggle-icon').className = 'ph ph-list';
+    const mobBtn = document.querySelector('.mobile-menu-toggle');
+    if (mobBtn) mobBtn.setAttribute('aria-expanded', 'false');
 
     // Page rendering hooks
     if (page === 'dashboard') {
@@ -309,13 +311,16 @@ function logout(event) {
 function toggleMobileMenu() {
   const menu = document.getElementById('mobile-nav-dropdown');
   const icon = document.getElementById('mobile-toggle-icon');
+  const button = document.querySelector('.mobile-menu-toggle');
   
   if (menu.classList.contains('hidden')) {
     menu.classList.remove('hidden');
     icon.className = 'ph ph-x';
+    if (button) button.setAttribute('aria-expanded', 'true');
   } else {
     menu.classList.add('hidden');
     icon.className = 'ph ph-list';
+    if (button) button.setAttribute('aria-expanded', 'false');
   }
 }
 
@@ -485,7 +490,7 @@ function renderDashboardCategoryBreakdown(profile) {
 
     row.innerHTML = `
       <div class="breakdown-meta">
-        <span class="breakdown-cat-name"><i class="${iconClass}"></i> ${catName}</span>
+        <span class="breakdown-cat-name"><i class="${iconClass}" aria-hidden="true"></i> ${catName}</span>
         <span class="breakdown-cat-val font-mono">${val.toFixed(1)} kg CO₂</span>
       </div>
       <div class="breakdown-bar-bg">
@@ -563,13 +568,16 @@ function renderLogPage() {
   buttons.forEach(btn => {
     if (btn.textContent.toLowerCase() === activeCategory) {
       btn.classList.add('active');
+      btn.setAttribute('aria-selected', 'true');
     } else {
       btn.classList.remove('active');
+      btn.setAttribute('aria-selected', 'false');
     }
   });
 
   const listContainer = document.getElementById('log-activity-list');
   if (!listContainer) return;
+  listContainer.setAttribute('aria-labelledby', `tab-${activeCategory}`);
   
   listContainer.innerHTML = '';
   const categoryActivities = activities[activeCategory] || [];
@@ -587,7 +595,7 @@ function renderLogPage() {
     
     card.innerHTML = `
       <div class="activity-icon">
-        <i class="${act.icon}"></i>
+        <i class="${act.icon}" aria-hidden="true"></i>
       </div>
       <div class="activity-info">
         <span class="activity-name">${act.name}</span>
@@ -1175,10 +1183,10 @@ function renderProgressBreakdown(profile) {
     
     row.innerHTML = `
       <div class="progress-breakdown-cat">
-        <i class="${iconClass}"></i>
+        <i class="${iconClass}" aria-hidden="true"></i>
         <div>
           <div style="font-weight: 500; text-transform: capitalize;">${catName}</div>
-          <div class="progress-breakdown-details text-secondary">${currentVal.toFixed(1)} kg CO₂ vs. ${baseline.toFixed(1)} baseline</div>
+          <div class="progress-breakdown-details text-secondary">${currentVal.toFixed(1)} kg CO₂ vs. ${baseline.toFixed(1)} kg CO₂ baseline</div>
         </div>
       </div>
       <div class="progress-breakdown-change ${isWarning ? 'warning' : ''}">${changeText}</div>
@@ -1243,7 +1251,7 @@ function renderMilestones(profile) {
     
     node.innerHTML = `
       <div class="milestone-icon-box">
-        <i class="${m.condition ? m.icon : 'ph ph-lock'}"></i>
+        <i class="${m.condition ? m.icon : 'ph ph-lock'}" aria-hidden="true"></i>
       </div>
       <div class="milestone-content">
         <span class="milestone-title">${m.title}</span>

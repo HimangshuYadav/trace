@@ -24,6 +24,8 @@
   <script src="app.js" defer></script>
 </head>
 <body>
+  <!-- Landmark Skip Link for Keyboard Accessibility -->
+  <a href="#content-area" class="skip-to-content">Skip to content</a>
 
   <!-- Navigation Bar (Stays at top of all pages) -->
   <nav class="nav-bar">
@@ -48,8 +50,8 @@
       </div>
       
       <!-- Mobile menu trigger -->
-      <button class="mobile-menu-toggle" onclick="toggleMobileMenu()">
-        <i class="ph ph-list" id="mobile-toggle-icon"></i>
+      <button class="mobile-menu-toggle" onclick="toggleMobileMenu()" aria-label="Toggle navigation menu" aria-expanded="false" aria-controls="mobile-nav-dropdown">
+        <i class="ph ph-list" id="mobile-toggle-icon" aria-hidden="true"></i>
       </button>
     </div>
     
@@ -116,13 +118,13 @@
 
 
   <!-- ==================== AUTHENTICATION OVERLAY CARD ==================== -->
-  <div id="auth-modal" class="auth-modal-overlay hidden">
+  <div id="auth-modal" class="auth-modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="auth-modal-title">
     <div class="auth-modal-card">
-      <button class="auth-modal-close" onclick="closeAuthModal()"><i class="ph ph-x"></i></button>
+      <button class="auth-modal-close" onclick="closeAuthModal()" aria-label="Close dialog"><i class="ph ph-x" aria-hidden="true"></i></button>
       
       <!-- Sign In View -->
       <div id="auth-signin-view">
-        <h3 class="auth-title">Welcome back to Trace</h3>
+        <h3 class="auth-title" id="auth-modal-title">Welcome back to Trace</h3>
         <p class="auth-subtitle">Sign in to resume tracking your footprint.</p>
         <form onsubmit="handleSignInSubmit(event)">
           <div class="form-group">
@@ -222,15 +224,15 @@
                 </div>
                 <div class="mock-category-list">
                   <div class="mock-cat-row">
-                    <i class="ph ph-car text-slate"></i>
+                    <i class="ph ph-car text-slate" aria-hidden="true"></i>
                     <div class="mock-bar-container"><div class="mock-bar" style="width: 55%;"></div></div>
                   </div>
                   <div class="mock-cat-row">
-                    <i class="ph ph-fork-knife text-slate"></i>
+                    <i class="ph ph-fork-knife text-slate" aria-hidden="true"></i>
                     <div class="mock-bar-container"><div class="mock-bar" style="width: 30%;"></div></div>
                   </div>
                   <div class="mock-cat-row">
-                    <i class="ph ph-lightning text-slate"></i>
+                    <i class="ph ph-lightning text-slate" aria-hidden="true"></i>
                     <div class="mock-bar-container"><div class="mock-bar" style="width: 10%;"></div></div>
                   </div>
                 </div>
@@ -252,7 +254,7 @@
           <div class="three-col-grid">
             <div class="how-column">
               <div class="how-icon-box">
-                <i class="ph ph-pencil-plus"></i>
+                <i class="ph ph-pencil-plus" aria-hidden="true"></i>
               </div>
               <h3 class="column-heading">Log what you did</h3>
               <p class="column-body">Add a commute, a meal, or an energy bill in under 30 seconds.</p>
@@ -260,7 +262,7 @@
             
             <div class="how-column">
               <div class="how-icon-box">
-                <i class="ph ph-chart-bar"></i>
+                <i class="ph ph-chart-bar" aria-hidden="true"></i>
               </div>
               <h3 class="column-heading">See your footprint</h3>
               <p class="column-body">Instantly see the kg CO₂ impact — broken down by category and compared to your baseline.</p>
@@ -268,7 +270,7 @@
             
             <div class="how-column">
               <div class="how-icon-box">
-                <i class="ph ph-sparkles"></i>
+                <i class="ph ph-sparkles" aria-hidden="true"></i>
               </div>
               <h3 class="column-heading">Act on what matters</h3>
               <p class="column-body">Get one ranked, personalised tip per week based on where your footprint is highest.</p>
@@ -328,7 +330,7 @@
               <div class="flat-card top-offset">
                 <div class="flat-card-head">
                   <span class="pill-tag text-warning bg-warning-light">High impact</span>
-                  <span class="card-cat font-mono text-secondary">FOOD</span>
+                  <span class="card-cat font-mono text-secondary">Food</span>
                 </div>
                 <h4 class="flat-card-title">Switch to a plant-based lunch three times a week</h4>
                 <div class="flat-card-impact font-mono text-primary">Saves 4.2 kg CO₂/week</div>
@@ -368,22 +370,22 @@
           
           <nav class="sidebar-nav">
             <a href="#dashboard" class="sidebar-link active" onclick="navigateTo('dashboard', event)">
-              <i class="ph ph-layout"></i> Dashboard
+              <i class="ph ph-layout" aria-hidden="true"></i> Dashboard
             </a>
             <a href="#log" class="sidebar-link" onclick="navigateTo('log', event)">
-              <i class="ph ph-pencil-plus"></i> Log Activity
+              <i class="ph ph-pencil-plus" aria-hidden="true"></i> Log activity
             </a>
             <a href="#insights" class="sidebar-link" onclick="navigateTo('insights', event)">
-              <i class="ph ph-sparkles"></i> Insights
+              <i class="ph ph-sparkles" aria-hidden="true"></i> Insights
             </a>
             <a href="#progress" class="sidebar-link" onclick="navigateTo('progress', event)">
-              <i class="ph ph-chart-line"></i> Progress
+              <i class="ph ph-chart-line" aria-hidden="true"></i> Progress
             </a>
           </nav>
           
           <div class="sidebar-streak">
             <div class="streak-box">
-              <i class="ph ph-fire-simple text-warning"></i>
+              <i class="ph ph-fire-simple text-warning" aria-hidden="true"></i>
               <span class="streak-text" id="sidebar-streak-text">9-day streak</span>
             </div>
           </div>
@@ -506,15 +508,15 @@
         </div>
 
         <!-- Category Tabs -->
-        <div class="category-tabs" id="log-tabs">
-          <button class="tab-pill active" onclick="switchLogCategory('transport')">Transport</button>
-          <button class="tab-pill" onclick="switchLogCategory('food')">Food</button>
-          <button class="tab-pill" onclick="switchLogCategory('energy')">Energy</button>
-          <button class="tab-pill" onclick="switchLogCategory('shopping')">Shopping</button>
+        <div class="category-tabs" id="log-tabs" role="tablist" aria-label="Habit categories">
+          <button class="tab-pill active" id="tab-transport" role="tab" aria-selected="true" aria-controls="log-activity-list" onclick="switchLogCategory('transport')">Transport</button>
+          <button class="tab-pill" id="tab-food" role="tab" aria-selected="false" aria-controls="log-activity-list" onclick="switchLogCategory('food')">Food</button>
+          <button class="tab-pill" id="tab-energy" role="tab" aria-selected="false" aria-controls="log-activity-list" onclick="switchLogCategory('energy')">Energy</button>
+          <button class="tab-pill" id="tab-shopping" role="tab" aria-selected="false" aria-controls="log-activity-list" onclick="switchLogCategory('shopping')">Shopping</button>
         </div>
 
         <!-- Activity Option List -->
-        <div class="activity-list" id="log-activity-list">
+        <div class="activity-list" id="log-activity-list" role="tabpanel" aria-labelledby="tab-transport">
           <!-- Populated by JS -->
         </div>
 
@@ -522,9 +524,9 @@
         <div class="quantity-input-section">
           <label class="quantity-label" id="quantity-input-label">Distance (km)</label>
           <div class="stepper-control">
-            <button class="step-btn" onclick="adjustQuantity(-10)"><i class="ph ph-minus"></i></button>
-            <input type="number" class="stepper-input font-mono" id="log-quantity" value="10" min="1" oninput="updateLiveCalculation()">
-            <button class="step-btn" onclick="adjustQuantity(10)"><i class="ph ph-plus"></i></button>
+            <button class="step-btn" onclick="adjustQuantity(-10)" aria-label="Decrease quantity"><i class="ph ph-minus" aria-hidden="true"></i></button>
+            <input type="number" class="stepper-input font-mono" id="log-quantity" value="10" min="1" oninput="updateLiveCalculation()" aria-label="Activity quantity value">
+            <button class="step-btn" onclick="adjustQuantity(10)" aria-label="Increase quantity"><i class="ph ph-plus" aria-hidden="true"></i></button>
           </div>
           
           <!-- Live Calculation Output -->
