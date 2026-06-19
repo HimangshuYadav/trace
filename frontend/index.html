@@ -128,11 +128,11 @@
         <p class="auth-subtitle">Sign in to resume tracking your footprint.</p>
         <form onsubmit="handleSignInSubmit(event)">
           <div class="form-group">
-            <label class="form-label">Email address</label>
+            <label class="form-label" for="signin-email">Email address</label>
             <input type="email" required class="form-input" id="signin-email" placeholder="taylor@trace.earth">
           </div>
           <div class="form-group">
-            <label class="form-label">Password</label>
+            <label class="form-label" for="signin-password">Password</label>
             <input type="password" required class="form-input" id="signin-password" placeholder="••••••••">
           </div>
           <div class="auth-error font-mono text-warning hidden" id="signin-error">Incorrect email or password.</div>
@@ -149,15 +149,15 @@
         <p class="auth-subtitle">Start understanding and reducing your footprint.</p>
         <form onsubmit="handleSignUpSubmit(event)">
           <div class="form-group">
-            <label class="form-label">Your name</label>
+            <label class="form-label" for="signup-name">Your name</label>
             <input type="text" required class="form-input" id="signup-name" placeholder="Taylor Young">
           </div>
           <div class="form-group">
-            <label class="form-label">Email address</label>
+            <label class="form-label" for="signup-email">Email address</label>
             <input type="email" required class="form-input" id="signup-email" placeholder="you@example.com">
           </div>
           <div class="form-group">
-            <label class="form-label">Password</label>
+            <label class="form-label" for="signup-password">Password</label>
             <input type="password" required class="form-input" id="signup-password" placeholder="••••••••">
           </div>
           <div class="auth-error font-mono text-warning hidden" id="signup-error">Email is already registered.</div>
@@ -522,7 +522,7 @@
 
         <!-- Quantity Input Control -->
         <div class="quantity-input-section">
-          <label class="quantity-label" id="quantity-input-label">Distance (km)</label>
+          <label class="quantity-label" id="quantity-input-label" for="log-quantity">Distance (km)</label>
           <div class="stepper-control">
             <button class="step-btn" onclick="adjustQuantity(-10)" aria-label="Decrease quantity"><i class="ph ph-minus" aria-hidden="true"></i></button>
             <input type="number" class="stepper-input font-mono" id="log-quantity" value="10" min="1" oninput="updateLiveCalculation()" aria-label="Activity quantity value">
