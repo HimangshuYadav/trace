@@ -1,0 +1,16 @@
+{
+  "name": "trace-frontend",
+  "version": "1.0.0",
+  "description": "Trace Carbon Footprint Tracker - Frontend Website",
+  "main": "index.html",
+  "scripts": {
+    "dev": "npx -y serve -l 3000"
+  },
+  "keywords": [
+    "frontend",
+    "serve",
+    "website"
+  ],
+  "author": "Antigravity Pair Program",
+  "license": "MIT"
+}

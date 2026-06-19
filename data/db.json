@@ -1,0 +1,101 @@
+{
+  "user": {
+    "name": "Taylor Young",
+    "target": 10,
+    "streak": 9,
+    "bestDay": 3.9,
+    "today": 7.4,
+    "weekTotal": 41.2,
+    "categories": {
+      "transport": 4.1,
+      "food": 2.2,
+      "energy": 0.8,
+      "shopping": 0.3
+    }
+  },
+  "progressHistory": [
+    {
+      "date": "Jun 1",
+      "value": 10
+    },
+    {
+      "date": "Jun 3",
+      "value": 9
+    },
+    {
+      "date": "Jun 5",
+      "value": 10.7
+    },
+    {
+      "date": "Jun 7",
+      "value": 12.3
+    },
+    {
+      "date": "Jun 9",
+      "value": 11
+    },
+    {
+      "date": "Jun 11",
+      "value": 14
+    },
+    {
+      "date": "Jun 13",
+      "value": 13
+    },
+    {
+      "date": "Jun 15",
+      "value": 15.5
+    },
+    {
+      "date": "Jun 17",
+      "value": 14.7
+    },
+    {
+      "date": "Jun 19 (Today)",
+      "value": 7.4
+    }
+  ],
+  "insights": [
+    {
+      "id": 1,
+      "category": "food",
+      "impact": "high",
+      "heading": "Switch to a plant-based lunch three times a week",
+      "saves": "Saves up to 4.2 kg CO₂/week — 12.0% of your current footprint",
+      "body": "Your food footprint has been 38.0% above your target for the past 3 weeks.",
+      "highlighted": true,
+      "dismissed": false,
+      "active": false
+    },
+    {
+      "id": 2,
+      "category": "transport",
+      "impact": "high",
+      "heading": "Car pool or take transit for your daily commute",
+      "saves": "Saves up to 8.4 kg CO₂/week — 24.0% of your current footprint",
+      "body": "Your transport footprint is the single largest contributor to your environmental impact.",
+      "dismissed": false,
+      "active": false
+    },
+    {
+      "id": 3,
+      "category": "energy",
+      "impact": "medium",
+      "heading": "Unplug electronic devices when not in use",
+      "saves": "Saves up to 1.5 kg CO₂/week — 4.0% of your current footprint",
+      "body": "Standby power accounts for roughly 8.0% of your monthly household energy usage.",
+      "dismissed": false,
+      "active": false
+    },
+    {
+      "id": 4,
+      "category": "shopping",
+      "impact": "medium",
+      "heading": "Opt for secondhand clothing items this month",
+      "saves": "Saves up to 6.2 kg CO₂/item — 18.0% of your current footprint",
+      "body": "New clothing production carries high manufacturing and transportation footprints.",
+      "dismissed": false,
+      "active": false
+    }
+  ]
+}

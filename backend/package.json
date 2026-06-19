@@ -1,0 +1,20 @@
+{
+  "name": "trace-backend",
+  "version": "1.0.0",
+  "description": "Trace Carbon Footprint Tracker - Express API Server",
+  "main": "server.js",
+  "scripts": {
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "cors": "^2.8.5"
+  },
+  "keywords": [
+    "express",
+    "backend",
+    "api"
+  ],
+  "author": "Antigravity Pair Program",
+  "license": "MIT"
+}

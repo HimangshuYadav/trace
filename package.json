@@ -1,0 +1,14 @@
+{
+  "name": "trace-project",
+  "version": "1.0.0",
+  "description": "Trace carbon footprint tracker - Split Architecture",
+  "scripts": {
+    "dev": "npx -y concurrently \"npm --prefix backend run dev\" \"npm --prefix frontend run dev\""
+  },
+  "keywords": [
+    "carbon",
+    "tracker"
+  ],
+  "author": "Antigravity Pair Program",
+  "license": "MIT"
+}
